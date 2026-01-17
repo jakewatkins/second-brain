@@ -1,0 +1,39 @@
+services:
+
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: second-brain-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=America/Los_Angeles
+      - N8N_LOG_LEVEL=info
+      - N8N_LOG_OUTPUT=console
+      - N8N_METRICS=true
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - DB_TYPE=sqlite
+      - DB_SQLITE_DATABASE=/home/node/.n8n/database.sqlite
+    volumes:
+      - ./data/n8n:/home/node/.n8n
+      - ./logs/n8n:/home/node/.n8n/logs
+    networks:
+      - second-brain-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5678/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  second-brain-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
