@@ -1,0 +1,164 @@
+{
+  "description": "Test messages for validating Second Brain classification",
+  "version": "1.0",
+  "categories": {
+    "people": {
+      "description": "Messages about contacts, relationships, networking",
+      "expected_confidence": "≥ 0.7",
+      "examples": [
+        {
+          "message": "Met Sarah Johnson at DevOps Days - she's a platform engineer at CloudCorp, really knowledgeable about Kubernetes and service mesh architectures",
+          "expected_name": "Sarah Johnson",
+          "expected_details": "Contains conference, role, company, expertise"
+        },
+        {
+          "message": "Need to follow up with David Chen about the Q2 infrastructure roadmap and his team's capacity planning concerns",
+          "expected_name": "David Chen",
+          "expected_details": "Follow-up about roadmap discussion"
+        },
+        {
+          "message": "Emily mentioned she's looking for good resources on GitOps practices and ArgoCD implementation patterns",
+          "expected_name": "Emily",
+          "expected_details": "Interest in GitOps and ArgoCD"
+        },
+        {
+          "message": "John Smith referred me to his contact at AWS - Alex Rodriguez who leads their DevOps Professional Services team",
+          "expected_name": "John Smith" ,
+          "expected_details": "Referral to Alex Rodriguez at AWS"
+        },
+        {
+          "message": "Talked to Maria about her experience migrating from Jenkins to GitHub Actions - she has great insights on incremental migration strategies",
+          "expected_name": "Maria",
+          "expected_details": "Jenkins to GitHub Actions migration experience"
+        }
+      ]
+    },
+    "projects": {
+      "description": "Work tasks, goals, multi-step activities",
+      "expected_confidence": "≥ 0.7",
+      "examples": [
+        {
+          "message": "Implement feature flags in the frontend application using LaunchDarkly to enable gradual rollout of new UI components",
+          "expected_name": "Implement feature flags",
+          "expected_next_action": "Set up LaunchDarkly account and integrate SDK"
+        },
+        {
+          "message": "Migrate the user authentication service from monolithic database to distributed cache layer with Redis for improved performance",
+          "expected_name": "Migrate authentication to Redis",
+          "expected_next_action": "Design cache schema and invalidation strategy"
+        },
+        {
+          "message": "Build comprehensive monitoring dashboard for microservices health using Grafana - include latency, error rates, and throughput metrics",
+          "expected_name": "Build monitoring dashboard",
+          "expected_next_action": "Set up Grafana instance and configure data sources"
+        },
+        {
+          "message": "Refactor the payment processing module to handle idempotency properly and add retry logic with exponential backoff",
+          "expected_name": "Refactor payment processing",
+          "expected_next_action": "Implement idempotency keys in payment API"
+        },
+        {
+          "message": "Set up CI/CD pipeline for the new microservice using GitHub Actions with automated testing, security scanning, and deployment to EKS",
+          "expected_name": "Set up CI/CD pipeline",
+          "expected_next_action": "Create GitHub Actions workflow file"
+        }
+      ]
+    },
+    "ideas": {
+      "description": "Insights, concepts, things to explore",
+      "expected_confidence": "≥ 0.7",
+      "examples": [
+        {
+          "message": "What if we applied chaos engineering principles to our database layer? Could randomly inject latency or partition failures to test resilience",
+          "expected_name": "Chaos engineering for databases",
+          "expected_details": "Test resilience with latency/failure injection"
+        },
+        {
+          "message": "Interesting concept: use event sourcing for the audit log instead of traditional CRUD. Would give us complete history replay capability and temporal queries",
+          "expected_name": "Event sourcing for audit logs",
+          "expected_details": "Complete history replay and temporal queries"
+        },
+        {
+          "message": "Could we use AI to automatically categorize and prioritize technical debt based on code complexity metrics and change frequency?",
+          "expected_name": "AI for tech debt prioritization",
+          "expected_details": "Based on complexity and change frequency"
+        },
+        {
+          "message": "Thinking about implementing canary deployments at the database migration level - gradually roll out schema changes with automatic rollback on errors",
+          "expected_name": "Canary database migrations",
+          "expected_details": "Gradual schema changes with auto-rollback"
+        },
+        {
+          "message": "What if we built a custom Kubernetes operator that automatically scales databases based on query pattern analysis rather than just CPU/memory?",
+          "expected_name": "Query-based database autoscaling",
+          "expected_details": "K8s operator analyzing query patterns"
+        }
+      ]
+    },
+    "admin": {
+      "description": "Errands, appointments, administrative tasks",
+      "expected_confidence": "≥ 0.7",
+      "examples": [
+        {
+          "message": "Schedule annual security audit and penetration testing for Q2 compliance requirements",
+          "expected_name": "Schedule security audit",
+          "expected_next_action": "Contact security audit vendors"
+        },
+        {
+          "message": "Renew SSL certificates for production domains - they expire on March 15th",
+          "expected_name": "Renew SSL certificates",
+          "expected_next_action": "Generate CSR and submit renewal request"
+        },
+        {
+          "message": "Submit Q1 cloud infrastructure budget report showing 15% cost reduction from rightsizing efforts",
+          "expected_name": "Submit Q1 budget report",
+          "expected_next_action": "Compile cost metrics and prepare report"
+        },
+        {
+          "message": "Book conference room for architecture review meeting next Wednesday at 2pm",
+          "expected_name": "Book conference room",
+          "expected_next_action": "Reserve room in calendar system"
+        },
+        {
+          "message": "Update emergency contact information in HR system and verify PagerDuty on-call rotation",
+          "expected_name": "Update emergency contacts",
+          "expected_next_action": "Log into HR portal"
+        }
+      ]
+    }
+  },
+  "edge_cases": {
+    "description": "Messages that should trigger low confidence",
+    "examples": [
+      {
+        "message": "asdf qwer zxcv",
+        "expected_category": "any",
+        "expected_confidence": "< 0.5",
+        "reason": "Gibberish"
+      },
+      {
+        "message": "thoughts",
+        "expected_category": "any",
+        "expected_confidence": "< 0.5",
+        "reason": "Too vague"
+      },
+      {
+        "message": "🎉",
+        "expected_category": "any",
+        "expected_confidence": "< 0.5",
+        "reason": "Just emoji"
+      },
+      {
+        "message": "Meeting with John about the database project idea and scheduling the review",
+        "expected_category": "multiple possible",
+        "expected_confidence": "< 0.7",
+        "reason": "Ambiguous - could be people, project, or admin"
+      }
+    ]
+  },
+  "usage": {
+    "manual_testing": "Copy messages from examples and post to Slack #sb-inbox",
+    "automated_testing": "Use send-test-messages.sh script to test all categories",
+    "validation": "Check Notion databases and Inbox Log for correct classification"
+  }
+}
