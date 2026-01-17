@@ -267,12 +267,19 @@ Generate exactly this format:
 
 ## Implementation Phases
 
+### Phase 0: Infrastructure Setup
+- **N8N Deployment**: Self-hosted N8N instance with persistent storage
+- **Ollama Installation**: Local AI model deployment and configuration
+- **Network Configuration**: Ensure N8N can communicate with Ollama and external APIs
+- **Security Setup**: API keys, authentication, and access controls
+- **Backup Strategy**: Infrastructure backup and disaster recovery planning
+
 ### Phase 1: Core Ingestion (MVP)
-- Slack capture setup
-- Basic N8N workflow
-- Ollama classification
-- Notion database creation and writing
+- Slack capture setup validation
+- Ollama classification workflow
+- Notion database writing and validation
 - Simple confirmation replies
+- End-to-end workflow testing
 
 ### Phase 2: Audit and Quality
 - Inbox Log implementation
@@ -280,13 +287,27 @@ Generate exactly this format:
 - Error correction workflow
 - Classification prompt refinement
 
-### Phase 3: Surfacing
+### Phase 3: Surfacing Intelligence
 - Daily digest automation
 - Weekly review automation
 - Prompt optimization for summaries
 - Delivery timing configuration
 
-### Phase 4: Polish and Reliability
+### Phase 4: Deploy and Configure
+- **Slack Workspace Setup**: Create SB-Inbox channel, configure bot permissions
+- **Notion Database Creation**: Set up all 5 databases with proper schemas and API access
+- **N8N Workflow Deployment**: Build and deploy core ingestion workflow
+- **Integration Testing**: Verify all system components communicate correctly
+- **Basic Monitoring**: Health checks and basic logging implementation
+
+### Phase 5: Pilot and Testing
+- **Real-world Usage**: Daily use of the system for 2-4 weeks
+- **Performance Monitoring**: Track response times, classification accuracy, error rates
+- **User Experience Testing**: Validate capture friction, trust mechanisms, error correction
+- **Prompt Refinement**: Adjust classification and extraction prompts based on real data
+- **Bug Fixes and Adjustments**: Address issues discovered during pilot phase
+
+### Phase 6: Polish and Reliability
 - Error handling improvements
 - Performance optimization
 - Backup and recovery procedures
