@@ -17,20 +17,18 @@ services:
     image: n8nio/n8n:latest
     container_name: second-brain-n8n
     restart: unless-stopped
-    ports:
-      - "5678:5678"
     environment:
-      - N8N_HOST=localhost
+      - N8N_HOST=n8n.fairladyz.local
       - N8N_PORT=5678
       - N8N_PROTOCOL=https
       - NODE_ENV=production
-      - WEBHOOK_URL=http://localhost:5678/
+      - WEBHOOK_URL=https://n8n.fairladyz.local/
       - GENERIC_TIMEZONE=America/Los_Angeles
       - N8N_LOG_LEVEL=info
       - N8N_LOG_OUTPUT=console
       - N8N_METRICS=true
       - N8N_DIAGNOSTICS_ENABLED=false
-      - N8N_SECURE_COOKIE=false
+      - N8N_SECURE_COOKIE=true
       - DB_TYPE=sqlite
       - DB_SQLITE_DATABASE=/home/node/.n8n/database.sqlite
     volumes:
@@ -47,7 +45,7 @@ services:
 volumes:
   caddy_data:
   caddy_config:
-  
+
 networks:
   second-brain-net:
     driver: bridge
