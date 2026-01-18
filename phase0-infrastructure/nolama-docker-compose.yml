@@ -1,5 +1,17 @@
 services:
 
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - second-brain-net
 
   n8n:
     image: n8nio/n8n:latest
@@ -10,7 +22,7 @@ services:
     environment:
       - N8N_HOST=localhost
       - N8N_PORT=5678
-      - N8N_PROTOCOL=http
+      - N8N_PROTOCOL=https
       - NODE_ENV=production
       - WEBHOOK_URL=http://localhost:5678/
       - GENERIC_TIMEZONE=America/Los_Angeles
@@ -32,6 +44,10 @@ services:
       timeout: 10s
       retries: 3
 
+volumes:
+  caddy_data:
+  caddy_config:
+  
 networks:
   second-brain-net:
     driver: bridge
