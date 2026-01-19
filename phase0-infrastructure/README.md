@@ -6,9 +6,15 @@ This directory contains all the infrastructure components needed to deploy the S
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│     Slack       │    │      N8N        │    │     Ollama      │
-│   (External)    │◄──►│  (Docker:5678)  │◄──►│ (Docker:11434)  │
+│     Slack       │    │    Traefik      │    │     Ollama      │
+│   (External)    │    │ (Docker:443/80) │    │ (Local:11434)   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
+           │                     │                     ▲
+           │                     ▼                     │
+           │            ┌─────────────────┐            │
+           └───────────►│      N8N        │◄───────────┘
+                        │(Docker:HTTPS)   │
+                        └─────────────────┘
                               │
                               ▼
                        ┌─────────────────┐
@@ -21,6 +27,7 @@ This directory contains all the infrastructure components needed to deploy the S
 
 - **macOS**: Sonoma 14+ or Sequoia 15+
 - **Docker Desktop**: Latest version with Docker Compose
+- **Ollama**: Installed locally on host machine
 - **Hardware**: Minimum 8GB RAM (16GB recommended)
 - **Storage**: 20GB+ free space
 - **Accounts**: Slack workspace, Notion account
@@ -42,8 +49,26 @@ Required credentials:
 - Slack bot token (from https://api.slack.com/apps)
 - Slack webhook URL
 - Slack channel ID for sb-inbox
+- Hostname for HTTPS setup (default: fairladyz.local)
 
-### 2. Start Infrastructure
+### 2. Setup Hostname Resolution
+
+Add hostname entries to your hosts file:
+
+```bash
+sudo echo "127.0.0.1 fairladyz.local n8n.fairladyz.local traefik.fairladyz.local" >> /etc/hosts
+```
+
+### 3. Generate SSL Certificates
+
+Generate self-signed certificates for HTTPS:
+
+```bash
+chmod +x generate-certs.sh
+./generate-certs.sh
+```
+
+### 4. Start Infrastructure
 
 Make scripts executable and start services:
 
@@ -54,31 +79,36 @@ chmod +x start.sh stop.sh backup.sh
 
 This will:
 - Create the Docker network
-- Start Ollama and N8N containers
+- Start Traefik reverse proxy
+- Start N8N with HTTPS support
 - Verify service health
 - Display access URLs
 
-### 3. Access Services
+### 5. Access Services
 
-- **N8N Web Interface**: http://localhost:5678
-- **Ollama API**: http://localhost:11434
+- **N8N Web Interface**: https://n8n.fairladyz.local (admin/changeme123)
+- **Traefik Dashboard**: https://traefik.fairladyz.local
+- **Local Ollama API**: http://localhost:11434
 
-### 4. Install AI Model
+**Note**: Your browser will show security warnings for self-signed certificates. Click "Advanced" → "Proceed to site".
 
-After services are running, install an AI model:
+### 6. Verify Ollama Installation
+
+Ensure Ollama is installed locally and has a model:
 
 ```bash
-# Option 1: Llama 3.2 (smaller, faster - recommended)
-docker exec -it second-brain-ollama ollama pull llama3.2:3b
+# Check Ollama status
+ollama list
 
-# Option 2: Mistral (good balance)
-docker exec -it second-brain-ollama ollama pull mistral:7b
+# Install a model if none exists (recommended)
+ollama pull llama3.2:3b
 
-# Option 3: Phi-3 (Microsoft, efficient)
-docker exec -it second-brain-ollama ollama pull phi3:mini
-
-# Verify installation
-docker exec -it second-brain-ollama ollama list
+# Test Ollama API
+curl http://localhost:11434/api/generate -d '{
+  "model": "llama3.2:3b",
+  "prompt": "Hello",
+  "stream": false
+}'
 ```
 
 ### 5. Configure N8N
@@ -92,23 +122,18 @@ docker exec -it second-brain-ollama ollama list
 
 ```
 phase0-infrastructure/
-├── docker-compose.yml          # Master compose file
+├── docker-compose.yml          # Master compose file (N8N + Traefik)
 ├── .env.template               # Environment variables template
 ├── .env                        # Your actual credentials (git-ignored)
 ├── .gitignore                  # Excludes sensitive files
+├── generate-certs.sh           # SSL certificate generation script
 ├── start.sh                    # Startup script
 ├── stop.sh                     # Shutdown script
 ├── backup.sh                   # Backup script
-├── config/
-│   ├── n8n/
-│   │   └── docker-compose.yml  # N8N-specific config
-│   └── ollama/
-│       └── docker-compose.yml  # Ollama-specific config
-├── data/
-│   ├── n8n/                    # N8N persistent data
-│   └── ollama/                 # Ollama models and cache
-└── logs/
-    └── n8n/                    # N8N application logs
+├── traefik-data/               # Traefik configuration data
+├── certs/                      # SSL certificates
+├── n8n-data/                   # N8N persistent data
+└── n8n-logs/                   # N8N application logs
 ```
 
 ## 🛠️ Management Commands
@@ -152,6 +177,12 @@ docker-compose ps
 docker-compose restart
 ```
 
+### Regenerate SSL Certificates
+```bash
+./generate-certs.sh
+docker-compose restart traefik
+```
+
 ## 🔍 Troubleshooting
 
 ### Services Won't Start
@@ -163,33 +194,59 @@ docker info
 
 Check port availability:
 ```bash
-lsof -i :5678  # N8N
-lsof -i :11434 # Ollama
+lsof -i :443  # HTTPS
+lsof -i :80   # HTTP
+lsof -i :11434 # Ollama (local)
 ```
 
-### Ollama Model Issues
+### Browser Security Warnings
 
-Check available space:
+Since we use self-signed certificates, browsers show security warnings:
+- **Chrome/Edge**: Click "Advanced" → "Proceed to site"
+- **Firefox**: Click "Advanced" → "Accept the Risk and Continue"
+
+### Hostname Resolution Issues
+
+Ensure hostname is in `/etc/hosts`:
 ```bash
-df -h
+cat /etc/hosts | grep fairladyz.local
 ```
 
-View Ollama logs:
+If missing, add it:
 ```bash
-docker logs second-brain-ollama
+sudo echo "127.0.0.1 fairladyz.local n8n.fairladyz.local traefik.fairladyz.local" >> /etc/hosts
+```
+
+### Ollama Connection Issues
+
+Check local Ollama service:
+```bash
+ollama list
+curl http://localhost:11434/api/tags
+```
+
+Restart Ollama if needed:
+```bash
+brew services restart ollama
 ```
 
 ### N8N Access Issues
 
 Verify service health:
 ```bash
-curl http://localhost:5678/healthz
+curl -k https://n8n.fairladyz.local
+```
+
+Check service logs:
+```bash
+docker-compose logs n8n
+docker-compose logs traefik
 ```
 
 Reset N8N data (nuclear option):
 ```bash
 ./stop.sh
-rm -rf ./data/n8n/*
+rm -rf ./n8n-data/*
 ./start.sh
 ```
 
@@ -205,7 +262,10 @@ docker-compose up -d
 ## 🔒 Security Notes
 
 - `.env` file contains sensitive credentials - **never commit to git**
-- N8N and Ollama only accessible on localhost
+- Using self-signed certificates for local development
+- N8N requires HTTPS for Slack OAuth integrations
+- Default N8N credentials: admin/changeme123 - **change immediately**
+- Certificates valid for 365 days - regenerate with `./generate-certs.sh`
 - All databases should be private/shared only with integration
 - Regular backups recommended
 - Rotate API tokens periodically
@@ -213,9 +273,10 @@ docker-compose up -d
 ## 📊 Resource Usage
 
 Typical resource consumption:
-- **Ollama**: 2-4GB RAM (depending on model)
+- **Traefik**: 50-100MB RAM
 - **N8N**: 200-500MB RAM
-- **Disk**: 5-10GB for models + workflow data
+- **Ollama (local)**: 2-4GB RAM (depending on model)
+- **Disk**: 1-2GB for N8N data, certificates, and logs
 
 ## 🔄 Updates
 
